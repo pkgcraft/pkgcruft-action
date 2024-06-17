@@ -1,0 +1,25 @@
+name: ci
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - "action.yml"
+      - "pkgruft-action"
+      - "testdata"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "action.yml"
+      - "pkgruft-action"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Test pkgcruft-action
+      uses: ./
