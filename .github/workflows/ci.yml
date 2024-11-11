@@ -25,17 +25,26 @@ jobs:
         repository: pkgcraft/pkgcraft-testdata
         path: testdata
 
+    - name: Set environment
+      shell: bash
+      run: echo "PKGCRUFT_ACTION_TEST=1" >> $GITHUB_ENV
+
     - name: Run against qa-primary repo
+      id: scan-qa-primary
       uses: ./
       with:
         repo: ./testdata/repos/valid/qa-primary
 
+    - name: Fail on previous run failure
+      if: ${{ steps.scan-qa-primary.outputs.exit-status != '0' }}
+      run: exit 1
+
     - name: Run against repo with invalid ebuilds
-      id: action
+      id: scan-bad
       uses: ./
       with:
         repo: ./testdata/repos/valid/bad
 
-    - name: Verify last run failed
-      if: ${{ failure() && steps.action.conclusion == 'failure' }}
-      run: exit 0
+    - name: Fail on previous run success
+      if: ${{ steps.scan-bad.outputs.exit-status == '0' }}
+      run: exit 1

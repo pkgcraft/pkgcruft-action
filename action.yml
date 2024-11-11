@@ -9,6 +9,10 @@ inputs:
     description: Path to ebuild repo
     required: false
     default: './'
+outputs:
+  exit-status:
+    description: "Action exit status"
+    value: ${{ steps.action.outputs.exit-status }}
 
 runs:
   using: composite
@@ -44,5 +48,16 @@ runs:
         echo "REPO=${{ inputs.repo }}" >> $GITHUB_ENV
 
     - name: Run pkgcruft action
-      shell: bash
-      run: ./pkgcruft-action
+      id: action
+      # run bash without -e enabled
+      shell: bash --noprofile --norc -o pipefail {0}
+      run: |
+        ./pkgcruft-action
+        status=$?
+        echo "exit-status=${status}" >> $GITHUB_OUTPUT
+
+        if [[ -n ${PKGCRUFT_ACTION_TEST} ]]; then
+          exit 0
+        else
+          exit ${status}
+        fi
