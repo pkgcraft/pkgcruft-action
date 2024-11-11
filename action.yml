@@ -35,6 +35,25 @@ runs:
         curl -L https://github.com/pkgcraft/pkgcraft/releases/download/pkgcraft-tools-0.0.16/pkgcraft-tools-0.0.16-x86_64-unknown-linux-gnu.tar.xz | tar -Jxvf - -C ~/.cargo/bin
         curl -L https://github.com/pkgcraft/pkgcraft/releases/download/pkgcruft-0.0.3/pkgcruft-0.0.3-x86_64-unknown-linux-gnu.tar.xz | tar -Jxvf - -C ~/.cargo/bin
 
+    # currently pkgcraft can't handle repo syncing
+    # see https://github.com/pkgcraft/pkgcruft-action/issues/2
+    - name: Checkout Gentoo repo and mangle /etc/portage/repos.conf
+      shell: bash
+      run: |
+        mkdir -p "${HOME}/.cache/pkgcruft/repos/gentoo"
+        curl -L https://github.com/gentoo-mirror/gentoo/archive/stable.tar.gz | tar -zxf - --strip-components=1 -C "${HOME}/.cache/pkgcruft/repos/gentoo"
+
+        dir=$(mktemp -d)
+        cat <<- EOF > "${dir}/repos.conf"
+        [DEFAULT]
+        main-repo = gentoo
+
+        [gentoo]
+        location = "${HOME}/.cache/pkgcruft/repos/gentoo"
+        EOF
+
+        sudo mv "${dir}" /etc/portage
+
     - name: Cache pkgcruft
       uses: actions/cache@v4
       with:
