@@ -16,6 +16,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
     - name: Checkout shared testdata
       uses: actions/checkout@v4
       with:
@@ -29,13 +32,13 @@ jobs:
     - name: Run against qa-primary repo
       env:
         _PKGCRUFT_ACTION_EXIT_STATUS: 0
-      uses: pkgcraft/pkgcruft-action@main
+      uses: ./
       with:
         repo: testdata/repos/valid/qa-primary
 
     - name: Run against repo with invalid ebuilds
       env:
         _PKGCRUFT_ACTION_EXIT_STATUS: 2
-      uses: pkgcraft/pkgcruft-action@main
+      uses: ./
       with:
         repo: testdata/repos/valid/bad
