@@ -9,7 +9,7 @@ inputs:
   repo:
     description: Path to ebuild repo
     required: false
-    default: './'
+    default: ''
 
 runs:
   using: composite
@@ -38,9 +38,12 @@ runs:
         path: ~/.cache/pkgcraft
         key: pkgcraft
 
-    - name: Run pkgcruft action
+    - name: Set environment
       shell: bash
       run: |
-        PKGCRUFT_SCAN_OPTIONS=${{ inputs.options }}
-        REPO=${{ inputs.repo }}
-        ./pkgcruft-action
+        echo "PKGCRUFT_SCAN_OPTIONS=${{ inputs.options }}" >> $GITHUB_ENV
+        echo "REPO=${{ inputs.repo }}" >> $GITHUB_ENV
+
+    - name: Run pkgcruft action
+      shell: bash
+      run: ./pkgcruft-action

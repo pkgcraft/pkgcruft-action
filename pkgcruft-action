@@ -16,4 +16,4 @@ rm -rf metadata/md5-cache
 ln -s ~/.cache/pkgcraft/md5-cache metadata/md5-cache
 
 echo "Running pkgcruft"
-run pkgcruft scan ${PKGCRUFT_SCAN_OPTIONS}
+run pkgcruft scan ${PKGCRUFT_SCAN_OPTIONS} ${REPO}
