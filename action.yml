@@ -74,16 +74,5 @@ runs:
 
     - name: Run pkgcruft action
       id: action
-      # run bash without -e enabled
-      shell: bash --noprofile --norc -o pipefail {0}
-      run: |
-        pkgcruft-action
-        status=$?
-        echo "exit-status=${status}" >> $GITHUB_OUTPUT
-
-        # verify expected exit status for tests
-        if [[ -n ${_PKGCRUFT_ACTION_EXIT_STATUS} ]]; then
-          [[ ${_PKGCRUFT_ACTION_EXIT_STATUS} == ${status} ]] && exit 0
-        fi
-
-        exit ${status}
+      shell: bash
+      run: pkgcruft-action

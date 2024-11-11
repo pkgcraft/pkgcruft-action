@@ -1,21 +1,37 @@
 #!/usr/bin/env bash
 
-set -e
+# disable github action bash shell default `set -e`
+set +e
 
 run() {
 	echo $@
 	$@
 }
 
-echo "Generating metadata"
-run pk repo metadata regen -p ~/.cache/pkgcraft/md5-cache ${REPO}
+# run scanning within a subshell with `set -e` enabled
+(
+	set -e
 
-# TODO: incorporate custom metadata dir into `pkgcruft scan` option
-mkdir -p "${REPO}"/metadata
-rm -rf "${REPO}"/metadata/md5-cache
-ln -s ~/.cache/pkgcraft/md5-cache "${REPO}"/metadata/md5-cache
+	echo "Generating metadata"
+	run pk repo metadata regen -p ~/.cache/pkgcraft/md5-cache ${REPO}
 
-# forcibly enable color output
-export CLICOLOR_FORCE=1
-echo "Running pkgcruft"
-run pkgcruft scan ${PKGCRUFT_SCAN_OPTIONS} ${REPO}
+	# TODO: incorporate custom metadata dir into `pkgcruft scan` option
+	mkdir -p "${REPO}"/metadata
+	rm -rf "${REPO}"/metadata/md5-cache
+	ln -s ~/.cache/pkgcraft/md5-cache "${REPO}"/metadata/md5-cache
+
+	# forcibly enable color output
+	export CLICOLOR_FORCE=1
+	echo "Running pkgcruft"
+	run pkgcruft scan ${PKGCRUFT_SCAN_OPTIONS} ${REPO}
+)
+
+status=$?
+echo "exit-status=${status}" >> $GITHUB_OUTPUT
+
+# verify expected exit status for tests
+if [[ -n ${_PKGCRUFT_ACTION_EXIT_STATUS} ]]; then
+	[[ ${_PKGCRUFT_ACTION_EXIT_STATUS} == ${status} ]] && exit 0
+fi
+
+exit ${status}
