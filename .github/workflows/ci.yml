@@ -3,11 +3,8 @@ name: ci
 on:
   push:
     branches: ['**']
-    paths:
-      - "action.yml"
-      - "pkgruft-action"
-      - "testdata"
-      - ".github/workflows/ci.yml"
+    paths-ignore:
+      - "*.md"
   pull_request:
     branches: [main]
     paths:
