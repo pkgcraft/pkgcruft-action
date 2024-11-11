@@ -9,10 +9,6 @@ inputs:
     description: Path to ebuild repo
     required: false
     default: './'
-outputs:
-  exit-status:
-    description: "Action exit status"
-    value: ${{ steps.action.outputs.exit-status }}
 
 runs:
   using: composite

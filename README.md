@@ -13,10 +13,6 @@ line.
 
 By default, the current working directory is used for a repo path.
 
-## Outputs
-
-### `exit-status` -- action exit status
-
 ## Example workflows
 
 Workflow with no inputs:
