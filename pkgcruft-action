@@ -11,9 +11,9 @@ echo "Generating metadata"
 run pk repo metadata regen -p ~/.cache/pkgcraft/md5-cache ${REPO}
 
 # TODO: incorporate custom metadata dir into `pkgcruft scan` option
-mkdir -p metadata
-rm -rf metadata/md5-cache
-ln -s ~/.cache/pkgcraft/md5-cache metadata/md5-cache
+mkdir -p "${REPO}"/metadata
+rm -rf "${REPO}"/metadata/md5-cache
+ln -s ~/.cache/pkgcraft/md5-cache "${REPO}"/metadata/md5-cache
 
 # forcibly enable color output
 export CLICOLOR_FORCE=1

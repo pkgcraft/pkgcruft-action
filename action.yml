@@ -5,11 +5,10 @@ inputs:
     description: Options to pass to `pkgcruft scan`
     required: false
     default: ''
-    inputs:
   repo:
     description: Path to ebuild repo
     required: false
-    default: ''
+    default: './'
 
 runs:
   using: composite
