@@ -47,12 +47,18 @@ runs:
         echo "PKGCRUFT_SCAN_OPTIONS=${{ inputs.options }}" >> $GITHUB_ENV
         echo "REPO=${{ inputs.repo }}" >> $GITHUB_ENV
 
+    - name: Set GitHub Path
+      run: echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
+      shell: bash
+      env:
+        GITHUB_ACTION_PATH: ${{ github.action_path }}
+
     - name: Run pkgcruft action
       id: action
       # run bash without -e enabled
       shell: bash --noprofile --norc -o pipefail {0}
       run: |
-        ./pkgcruft-action
+        pkgcruft-action
         status=$?
         echo "exit-status=${status}" >> $GITHUB_OUTPUT
 
