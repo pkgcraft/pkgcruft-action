@@ -1,3 +1,19 @@
 #!/usr/bin/env bash
 
+set -e
+
+run() {
+	echo $@
+	$@
+}
+
+echo "Generating metadata"
+run pk repo metadata regen -p ~/.cache/pkgcraft/md5-cache ${REPO}
+
+# TODO: incorporate custom metadata dir into `pkgcruft scan` option
+mkdir -p metadata
+rm -rf metadata/md5-cache
+ln -s ~/.cache/pkgcraft/md5-cache metadata/md5-cache
+
 echo "Running pkgcruft"
+run pkgcruft scan ${PKGCRUFT_SCAN_OPTIONS}

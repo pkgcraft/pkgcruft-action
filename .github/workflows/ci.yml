@@ -22,5 +22,6 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Test pkgcruft-action
-      working-directory: ./testdata/repos/valid/qa-primary
       uses: ./
+      with:
+        repo: ./testdata/repos/valid/qa-primary
