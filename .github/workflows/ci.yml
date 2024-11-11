@@ -30,21 +30,15 @@ jobs:
       run: echo "_PKGCRUFT_ACTION_TEST=1" >> $GITHUB_ENV
 
     - name: Run against qa-primary repo
-      id: scan-qa-primary
+      env:
+        _PKGCRUFT_ACTION_EXIT_STATUS: 0
       uses: ./
       with:
         repo: ./testdata/repos/valid/qa-primary
 
-    - name: Fail on previous run failure
-      if: ${{ steps.scan-qa-primary.outputs.exit-status != '0' }}
-      run: exit 1
-
     - name: Run against repo with invalid ebuilds
-      id: scan-bad
+      env:
+        _PKGCRUFT_ACTION_EXIT_STATUS: 2
       uses: ./
       with:
         repo: ./testdata/repos/valid/bad
-
-    - name: Fail on previous run success
-      if: ${{ steps.scan-bad.outputs.exit-status == '0' }}
-      run: exit 1
