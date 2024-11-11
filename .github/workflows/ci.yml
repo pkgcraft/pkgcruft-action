@@ -25,7 +25,17 @@ jobs:
         repository: pkgcraft/pkgcraft-testdata
         path: testdata
 
-    - name: Test pkgcruft-action
+    - name: Run against qa-primary repo
       uses: ./
       with:
         repo: ./testdata/repos/valid/qa-primary
+
+    - name: Run against repo with invalid ebuilds
+      id: action
+      uses: ./
+      with:
+        repo: ./testdata/repos/valid/bad
+
+    - name: Verify last run failed
+      if: ${{ failure() && steps.action.conclusion == 'failure' }}
+      run: exit 0
