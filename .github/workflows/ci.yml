@@ -25,10 +25,6 @@ jobs:
         repository: pkgcraft/pkgcraft-testdata
         path: testdata
 
-    - name: Set environment
-      shell: bash
-      run: echo "_PKGCRUFT_ACTION_TEST=1" >> $GITHUB_ENV
-
     - name: Run against qa-primary repo
       env:
         _PKGCRUFT_ACTION_EXIT_STATUS: 0
