@@ -56,7 +56,7 @@ runs:
         status=$?
         echo "exit-status=${status}" >> $GITHUB_OUTPUT
 
-        if [[ -n ${PKGCRUFT_ACTION_TEST} ]]; then
+        if [[ -n ${_PKGCRUFT_ACTION_TEST} ]]; then
           exit 0
         else
           exit ${status}

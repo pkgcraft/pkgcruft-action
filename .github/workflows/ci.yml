@@ -27,7 +27,7 @@ jobs:
 
     - name: Set environment
       shell: bash
-      run: echo "PKGCRUFT_ACTION_TEST=1" >> $GITHUB_ENV
+      run: echo "_PKGCRUFT_ACTION_TEST=1" >> $GITHUB_ENV
 
     - name: Run against qa-primary repo
       id: scan-qa-primary
