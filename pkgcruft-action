@@ -38,15 +38,29 @@ set +e
 	pkgcruft replay --sort "${SCAN_DIR}/new.json"
 
 	if [[ -f ${SCAN_DIR}/old.json ]]; then
-		echo Differences from last run
-		pkgcruft diff --sort "${SCAN_DIR}/old.json" "${SCAN_DIR}/new.json"
+		diff=$(mktemp)
+		pkgcruft diff --sort "${SCAN_DIR}/old.json" "${SCAN_DIR}/new.json" > "${diff}"
+		# output diff if changes exists
+		if [[ -s ${diff} ]]; then
+			echo -e "\n\nDifferences from last run"
+			cat "${diff}"
+		else
+			echo -e "\n\nNo differences from last run"
+		fi
 	fi
 
 	if [[ -n ${GIT_BASE_BRANCH} ]]; then
 		OLD_SCAN_DIR="${HOME}/.cache/pkgcruft/scans/${GIT_BASE_BRANCH}"
 		if [[ -f ${OLD_SCAN_DIR}/old.json ]]; then
-			echo Differences from target branch: ${GIT_BASE_BRANCH}
-			pkgcruft diff --sort "${OLD_SCAN_DIR}/old.json" "${SCAN_DIR}/new.json"
+			diff=$(mktemp)
+			pkgcruft diff --sort "${OLD_SCAN_DIR}/old.json" "${SCAN_DIR}/new.json" > "${diff}"
+			# output diff if changes exists
+			if [[ -s ${diff} ]]; then
+				echo -e "\n\nDifferences from target branch: ${GIT_BASE_BRANCH}"
+				cat "${diff}"
+			else
+				echo -e "\n\nNo differences from target branch: ${GIT_BASE_BRANCH}"
+			fi
 		fi
 	fi
 
