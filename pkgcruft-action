@@ -33,8 +33,8 @@ set +e
 	SCAN_DIR="${HOME}/.cache/pkgcruft/scans/${GIT_BRANCH}"
 	mkdir -p "${SCAN_DIR}"
 	pkgcruft scan --repo ${REPO} -R json > "${SCAN_DIR}/new.json"
-	# forcibly enable color output
-	export CLICOLOR_FORCE=1
+	# enable color output
+	export CLICOLOR=1
 	pkgcruft replay --sort "${SCAN_DIR}/new.json"
 
 	if [[ -f ${SCAN_DIR}/old.json ]]; then
@@ -54,7 +54,8 @@ set +e
 		OLD_SCAN_DIR="${HOME}/.cache/pkgcruft/scans/${GIT_BASE_BRANCH}"
 		if [[ -f ${OLD_SCAN_DIR}/old.json ]]; then
 			diff=$(mktemp)
-			pkgcruft diff --sort "${OLD_SCAN_DIR}/old.json" "${SCAN_DIR}/new.json" > "${diff}"
+			# disable colors as ANSI escape codes aren't interpreted in github comments
+			NO_COLOR=1 pkgcruft diff --sort "${OLD_SCAN_DIR}/old.json" "${SCAN_DIR}/new.json" > "${diff}"
 			diff_output=$(mktemp)
 			# output diff if changes exists
 			if [[ -s ${diff} ]]; then
