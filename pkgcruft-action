@@ -50,6 +50,7 @@ set +e
 	fi
 
 	if [[ -n ${GIT_BASE_BRANCH} ]]; then
+		# pull request diff
 		OLD_SCAN_DIR="${HOME}/.cache/pkgcruft/scans/${GIT_BASE_BRANCH}"
 		if [[ -f ${OLD_SCAN_DIR}/old.json ]]; then
 			diff=$(mktemp)
@@ -60,6 +61,20 @@ set +e
 				cat "${diff}"
 			else
 				echo -e "\n\nNo differences from target branch: ${GIT_BASE_BRANCH}"
+			fi
+		fi
+	elif [[ ${GIT_BRANCH} != ${GIT_DEFAULT_BRANCH} ]]; then
+		# default branch to non-default branch diff
+		OLD_SCAN_DIR="${HOME}/.cache/pkgcruft/scans/${GIT_DEFAULT_BRANCH}"
+		if [[ -f ${OLD_SCAN_DIR}/old.json ]]; then
+			diff=$(mktemp)
+			pkgcruft diff --sort "${OLD_SCAN_DIR}/old.json" "${SCAN_DIR}/new.json" > "${diff}"
+			# output diff if changes exists
+			if [[ -s ${diff} ]]; then
+				echo -e "\n\nDifferences from default branch: ${GIT_DEFAULT_BRANCH}"
+				cat "${diff}"
+			else
+				echo -e "\n\nNo differences from default branch: ${GIT_DEFAULT_BRANCH}"
 			fi
 		fi
 	fi
