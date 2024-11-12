@@ -14,14 +14,15 @@ run() {
 
 	# TODO: replace with native pkgcraft repo syncing functionality
 	# see https://github.com/pkgcraft/pkgcruft-action/issues/2
-	mkdir -p "${HOME}/.cache/pkgcruft/repos/gentoo"
-	curl -sL https://github.com/gentoo-mirror/gentoo/archive/stable.tar.gz | tar -zxf - --strip-components=1 -C "${HOME}/.cache/pkgcruft/repos/gentoo"
+	GENTOO_REPO="${HOME}/.cache/pkgcruft/repos/gentoo"
+	mkdir -p "${GENTOO_REPO}"
+	curl -sL https://github.com/gentoo-mirror/gentoo/archive/stable.tar.gz | tar -zxf - --strip-components=1 -C "${GENTOO_REPO}"
 	dir=$(mktemp -d)
 	cat <<- EOF > "${dir}/repos.conf"
 	[DEFAULT]
 	main-repo = gentoo
 	[gentoo]
-	location = "${HOME}/.cache/pkgcruft/repos/gentoo"
+	location = "${GENTOO_REPO}"
 	EOF
 	sudo mv "${dir}" /etc/portage
 
