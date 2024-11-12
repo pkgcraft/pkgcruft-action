@@ -22,10 +22,11 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-
     - name: Run pkgcruft
       uses: pkgcraft/pkgcruft-action@main
 ```
