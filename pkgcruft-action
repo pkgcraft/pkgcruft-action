@@ -42,15 +42,18 @@ set +e
 		pkgcruft diff --sort "${SCAN_DIR}/old.json" "${SCAN_DIR}/new.json"
 	fi
 
-	if [[ ${GIT_BRANCH} != ${GIT_DEFAULT_BRANCH} ]]; then
-		OLD_SCAN_DIR="${HOME}/.cache/pkgcruft/scans/${GIT_DEFAULT_BRANCH}"
+	if [[ -n ${GIT_BASE_BRANCH} ]]; then
+		OLD_SCAN_DIR="${HOME}/.cache/pkgcruft/scans/${GIT_BASE_BRANCH}"
 		if [[ -f ${OLD_SCAN_DIR}/old.json ]]; then
-			echo Differences from default branch: ${GIT_DEFAULT_BRANCH}
+			echo Differences from target branch: ${GIT_BASE_BRANCH}
 			pkgcruft diff --sort "${OLD_SCAN_DIR}/old.json" "${SCAN_DIR}/new.json"
 		fi
 	fi
 
-	mv "${SCAN_DIR}/new.json" "${SCAN_DIR}/old.json"
+	# update cache results for non-pr runs
+	if [[ -z ${GIT_BASE_BRANCH} ]]; then
+		mv "${SCAN_DIR}/new.json" "${SCAN_DIR}/old.json"
+	fi
 )
 
 status=$?
