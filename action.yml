@@ -38,7 +38,8 @@ runs:
       uses: actions/cache@v4
       with:
         path: ~/.cache/pkgcruft
-        key: pkgcruft-${{ steps.install.outputs.pkgcraft-tools }}-${{ steps.install.outputs.pkgcruft }}
+        key: ${{ runner.os }}-${{ steps.install.outputs.pkgcraft-tools }}-${{ steps.install.outputs.pkgcruft }}
+        restore-keys: ${{ runner.os }}-
 
     - name: Set environment
       shell: bash
