@@ -40,8 +40,8 @@ runs:
       uses: actions/cache@v4
       with:
         path: ~/.cache/pkgcruft
-        key: ${{ runner.os }}-${{ steps.install.outputs.pkgcraft-tools }}-${{ steps.install.outputs.pkgcruft }}-repo-${{ hashFiles(format('{0}/**/*', inputs.repo)) }}
-        restore-keys: ${{ runner.os }}-
+        key: ${{ runner.os }}-${{ github.ref_name }}-${{ steps.install.outputs.pkgcraft-tools }}-${{ steps.install.outputs.pkgcruft }}-repo-${{ hashFiles(format('{0}/**/*', inputs.repo)) }}
+        restore-keys: ${{ runner.os }}-${{ github.event.repository.default_branch }}-
 
     - name: Set environment
       shell: bash
