@@ -8,11 +8,9 @@ GitHub action that runs pkgcruft over an ebuild repo.
 
 By default, the current working directory is used for a repo path.
 
-## Example workflows
+## Example workflow
 
 Note that the action requires using x86-64 Linux runners.
-
-Workflow with no inputs:
 
 ```yaml
 name: pkgcruft
