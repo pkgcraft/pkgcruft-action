@@ -64,7 +64,7 @@ set +e
 				echo -e "\n\nNo differences from target branch: ${GIT_BASE_BRANCH}" >> "${diff_output}"
 			fi
 			cat "${diff_output}"
-			gh pr comment ${GH_PR} --edit-last -F "${diff_output}"
+			gh pr comment ${GH_PR} -F "${diff_output}"
 		fi
 	elif [[ ${GIT_BRANCH} != ${GIT_DEFAULT_BRANCH} ]]; then
 		# default branch to non-default branch diff
