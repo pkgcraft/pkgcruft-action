@@ -40,7 +40,7 @@ runs:
       uses: actions/cache@v4
       with:
         path: ~/.cache/pkgcruft
-        key: ${{ runner.os }}-${{ steps.install.outputs.pkgcraft-tools }}-${{ steps.install.outputs.pkgcruft }}
+        key: ${{ runner.os }}-${{ steps.install.outputs.pkgcraft-tools }}-${{ steps.install.outputs.pkgcruft }}-${{ hashFiles(format('{0}/**/*', inputs.repo)) }}
         restore-keys: ${{ runner.os }}-
 
     - name: Set environment
