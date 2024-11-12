@@ -10,6 +10,8 @@ By default, the current working directory is used for a repo path.
 
 ## Example workflows
 
+Note that the action requires using x86-64 Linux runners.
+
 Workflow with no inputs:
 
 ```yaml
