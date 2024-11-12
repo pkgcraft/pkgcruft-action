@@ -31,6 +31,8 @@ runs:
       run: |
         curl -sL https://github.com/pkgcraft/pkgcraft/releases/download/pkgcraft-tools-0.0.16/pkgcraft-tools-0.0.16-x86_64-unknown-linux-gnu.tar.xz | tar -Jxvf - -C ~/.cargo/bin
         curl -sL https://github.com/pkgcraft/pkgcraft/releases/download/pkgcruft-0.0.3/pkgcruft-0.0.3-x86_64-unknown-linux-gnu.tar.xz | tar -Jxvf - -C ~/.cargo/bin
+        pk --version
+        pkgcruft --version
         echo "pkgcraft-tools=$(pk --version)" >> $GITHUB_OUTPUT
         echo "pkgcruft=$(pkgcruft --version)" >> $GITHUB_OUTPUT
 
