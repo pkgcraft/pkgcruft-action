@@ -25,6 +25,13 @@ jobs:
         repository: pkgcraft/pkgcraft-testdata
         path: testdata
 
+    - name: Run against repo with invalid ebuilds
+      env:
+        _PKGCRUFT_ACTION_EXIT_STATUS: 2
+      uses: ./
+      with:
+        repo: testdata/repos/valid/bad
+
     - name: Run against qa-primary repo
       env:
         _PKGCRUFT_ACTION_EXIT_STATUS: 0
@@ -32,9 +39,20 @@ jobs:
       with:
         repo: testdata/repos/valid/qa-primary
 
-    - name: Run against repo with invalid ebuilds
+    - name: Patch qa-primary repo
+      working-directory: testdata/repos/valid/qa-primary
+      run: |
+        for file in $(find -name '*.patch'); do
+          dir=${file%/*}
+          patch=${file##*/}
+          pushd "${dir}" > /dev/null
+          patch -p1 -F0 < "${patch}"
+          popd > /dev/null
+        done
+
+    - name: Run against patched qa-primary repo
       env:
-        _PKGCRUFT_ACTION_EXIT_STATUS: 2
+        _PKGCRUFT_ACTION_EXIT_STATUS: 0
       uses: ./
       with:
-        repo: testdata/repos/valid/bad
+        repo: testdata/repos/valid/qa-primary
