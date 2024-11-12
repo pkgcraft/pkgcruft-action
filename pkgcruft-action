@@ -3,18 +3,13 @@
 # disable github action bash shell default `set -e`
 set +e
 
-run() {
-	echo $@
-	$@
-}
-
-# run scanning within a subshell with `set -e` enabled
+# run scanning in a subshell with `set -e` enabled
 (
 	set -e
 
 	# TODO: replace with native pkgcraft repo syncing functionality
 	# see https://github.com/pkgcraft/pkgcruft-action/issues/2
-	GENTOO_REPO="${HOME}/.cache/pkgcruft/repos/gentoo"
+	GENTOO_REPO="${HOME}/.cache/pkgcraft/repos/gentoo"
 	mkdir -p "${GENTOO_REPO}"
 	curl -sL https://github.com/gentoo-mirror/gentoo/archive/stable.tar.gz | tar -zxf - --strip-components=1 -C "${GENTOO_REPO}"
 	dir=$(mktemp -d)
@@ -27,17 +22,35 @@ run() {
 	sudo mv "${dir}" /etc/portage
 
 	echo Generating metadata
-	run pk repo metadata regen -p ~/.cache/pkgcraft/md5-cache ${REPO}
+	pk repo metadata regen -p ~/.cache/pkgcruft/md5-cache ${REPO}
 
 	# TODO: incorporate custom metadata dir into `pkgcruft scan` option
 	mkdir -p "${REPO}"/metadata
 	rm -rf "${REPO}"/metadata/md5-cache
-	ln -s ~/.cache/pkgcraft/md5-cache "${REPO}"/metadata/md5-cache
+	ln -s ~/.cache/pkgcruft/md5-cache "${REPO}"/metadata/md5-cache
 
+	echo Running pkgcruft
+	SCAN_DIR="${HOME}/.cache/pkgcruft/scans/${GIT_BRANCH}"
+	mkdir -p "${SCAN_DIR}"
+	pkgcruft scan --repo ${REPO} -R json > "${SCAN_DIR}/new.json"
 	# forcibly enable color output
 	export CLICOLOR_FORCE=1
-	echo Running pkgcruft
-	run pkgcruft scan --repo ${REPO}
+	pkgcruft replay --sort "${SCAN_DIR}/new.json"
+
+	if [[ -f ${SCAN_DIR}/old.json ]]; then
+		echo Differences from last run
+		pkgcruft diff --sort "${SCAN_DIR}/old.json" "${SCAN_DIR}/new.json"
+	fi
+
+	if [[ ${GIT_BRANCH} != ${GIT_DEFAULT_BRANCH} ]]; then
+		OLD_SCAN_DIR="${HOME}/.cache/pkgcruft/scans/${GIT_DEFAULT_BRANCH}"
+		if [[ -f ${OLD_SCAN_DIR}/old.json ]]; then
+			echo Differences from default branch: ${GIT_DEFAULT_BRANCH}
+			pkgcruft diff --sort "${OLD_SCAN_DIR}/old.json" "${SCAN_DIR}/new.json"
+		fi
+	fi
+
+	mv "${SCAN_DIR}/new.json" "${SCAN_DIR}/old.json"
 )
 
 status=$?

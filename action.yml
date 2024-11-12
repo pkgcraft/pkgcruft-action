@@ -31,16 +31,18 @@ runs:
         curl -sL https://github.com/pkgcraft/pkgcraft/releases/download/pkgcraft-tools-0.0.16/pkgcraft-tools-0.0.16-x86_64-unknown-linux-gnu.tar.xz | tar -Jxvf - -C ~/.cargo/bin
         curl -sL https://github.com/pkgcraft/pkgcraft/releases/download/pkgcruft-0.0.3/pkgcruft-0.0.3-x86_64-unknown-linux-gnu.tar.xz | tar -Jxvf - -C ~/.cargo/bin
 
-    - name: Cache pkgcruft
+    - name: Cache repo metadata and pkgcruft output
       uses: actions/cache@v4
       with:
-        path: ~/.cache/pkgcraft
-        key: pkgcraft
+        path: ~/.cache/pkgcruft
+        key: pkgcruft
 
     - name: Set environment
       shell: bash
       run: |
         echo "REPO=${{ inputs.repo }}" >> $GITHUB_ENV
+        echo "GIT_DEFAULT_BRANCH=${{ github.event.repository.default_branch }}" >> $GITHUB_ENV
+        echo "GIT_BRANCH=${{ github.ref_name }}" >> $GITHUB_ENV
 
         # add action path to $PATH
         echo "${{ github.action_path }}" >> $GITHUB_PATH
