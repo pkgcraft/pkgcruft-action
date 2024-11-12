@@ -1,5 +1,9 @@
 name: pkgcruft
-description: Run pkgcruft over an ebuild repository
+description: Scan a Gentoo ebuild repository using pkgcruft.
+branding:
+  color: "purple"
+  icon: "package"
+
 inputs:
   options:
     description: Options to pass to `pkgcruft scan`
