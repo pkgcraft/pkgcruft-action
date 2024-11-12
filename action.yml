@@ -5,10 +5,6 @@ branding:
   icon: "package"
 
 inputs:
-  options:
-    description: Options to pass to `pkgcruft scan`
-    required: false
-    default: ''
   repo:
     description: Path to ebuild repo
     required: false
@@ -44,7 +40,6 @@ runs:
     - name: Set environment
       shell: bash
       run: |
-        echo "PKGCRUFT_SCAN_OPTIONS=${{ inputs.options }}" >> $GITHUB_ENV
         echo "REPO=${{ inputs.repo }}" >> $GITHUB_ENV
 
         # add action path to $PATH

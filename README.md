@@ -4,11 +4,6 @@ GitHub action that runs pkgcruft over an ebuild repo.
 
 ## Inputs
 
-### `options` (optional) -- custom options for `pkgcruft scan`
-
-Any options used with ``pkgcruft scan`` when running directly on the command
-line.
-
 ### `repo` (optional) -- custom target repo path
 
 By default, the current working directory is used for a repo path.
