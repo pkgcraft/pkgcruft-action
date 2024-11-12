@@ -36,8 +36,9 @@ runs:
         echo "pkgcraft-tools=$(pk --version)" >> $GITHUB_OUTPUT
         echo "pkgcruft=$(pkgcruft --version)" >> $GITHUB_OUTPUT
 
-    - name: Cache repo metadata and pkgcruft output
-      uses: actions/cache@v4
+    - name: Restore cache
+      id: restore-cache
+      uses: actions/cache/restore@v4
       with:
         path: ~/.cache/pkgcruft
         key: ${{ runner.os }}-${{ github.ref_name }}-${{ steps.install.outputs.pkgcraft-tools }}-${{ steps.install.outputs.pkgcruft }}-repo-${{ hashFiles(format('{0}/**/*', inputs.repo)) }}
@@ -57,3 +58,10 @@ runs:
     - name: Run pkgcruft action
       shell: bash
       run: pkgcruft-action
+
+    - name: Save cache
+      if: ${{ github.base_ref == '' && steps.restore-cache.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@v4
+      with:
+        path: ~/.cache/pkgcruft
+        key: ${{ steps.restore-cache.outputs.cache-primary-key }}
