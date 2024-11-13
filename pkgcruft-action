@@ -31,13 +31,11 @@ set +e
 	SCAN_DIR="${HOME}/.cache/pkgcruft/scans/${GIT_BRANCH}"
 	mkdir -p "${SCAN_DIR}"
 	pkgcruft scan "${REPO}" -R json > "${SCAN_DIR}/new.json"
-	# enable color output
-	export CLICOLOR=1
-	pkgcruft replay --sort "${SCAN_DIR}/new.json"
+	CLICOLOR_FORCE=1 pkgcruft replay --sort "${SCAN_DIR}/new.json"
 
 	if [[ -f ${SCAN_DIR}/old.json ]]; then
 		diff=$(mktemp)
-		pkgcruft diff --sort "${SCAN_DIR}/old.json" "${SCAN_DIR}/new.json" > "${diff}"
+		CLICOLOR_FORCE=1 pkgcruft diff --sort "${SCAN_DIR}/old.json" "${SCAN_DIR}/new.json" > "${diff}"
 		# output diff if changes exists
 		if [[ -s ${diff} ]]; then
 			echo -e "\n\nDifferences from last run"
@@ -76,7 +74,7 @@ set +e
 		OLD_SCAN_DIR="${HOME}/.cache/pkgcruft/scans/${GIT_DEFAULT_BRANCH}"
 		if [[ -f ${OLD_SCAN_DIR}/old.json ]]; then
 			diff=$(mktemp)
-			pkgcruft diff --sort "${OLD_SCAN_DIR}/old.json" "${SCAN_DIR}/new.json" > "${diff}"
+			CLICOLOR_FORCE=1 pkgcruft diff --sort "${OLD_SCAN_DIR}/old.json" "${SCAN_DIR}/new.json" > "${diff}"
 			# output diff if changes exists
 			if [[ -s ${diff} ]]; then
 				echo -e "\n\nDifferences from default branch: ${GIT_DEFAULT_BRANCH}"
