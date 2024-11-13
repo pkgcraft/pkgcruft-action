@@ -22,17 +22,15 @@ set +e
 	sudo mv "${dir}" /etc/portage
 
 	echo Generating metadata
-	pk repo metadata regen -p ~/.cache/pkgcruft/md5-cache ${REPO}
-
 	# TODO: incorporate custom metadata dir into `pkgcruft scan` option
-	mkdir -p "${REPO}"/metadata
-	rm -rf "${REPO}"/metadata/md5-cache
-	ln -s ~/.cache/pkgcruft/md5-cache "${REPO}"/metadata/md5-cache
+	mkdir -p ~/.cache/pkgcruft/md5-cache "${REPO}"/metadata/md5-cache
+	sudo mount -o bind ~/.cache/pkgcruft/md5-cache "${REPO}/metadata/md5-cache"
+	pk repo metadata regen "${REPO}"
 
 	echo Running pkgcruft
 	SCAN_DIR="${HOME}/.cache/pkgcruft/scans/${GIT_BRANCH}"
 	mkdir -p "${SCAN_DIR}"
-	pkgcruft scan --repo ${REPO} -R json > "${SCAN_DIR}/new.json"
+	pkgcruft scan "${REPO}" -R json > "${SCAN_DIR}/new.json"
 	# enable color output
 	export CLICOLOR=1
 	pkgcruft replay --sort "${SCAN_DIR}/new.json"
