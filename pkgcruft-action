@@ -68,6 +68,7 @@ set +e
 			# add PR comment using diff format
 			pr=$(mktemp)
 			echo '```diff' >> "${pr}"
+			echo "Commit: ${GIT_COMMIT}" >> "${pr}"
 			cat "${header}" >> "${pr}"
 			cat "${diff}" >> "${pr}"
 			echo '```' >> "${pr}"

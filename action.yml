@@ -60,6 +60,7 @@ runs:
       shell: bash
       run: |
         echo "REPO=${{ inputs.repo }}" >> $GITHUB_ENV
+        echo "GIT_COMMIT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
         echo "GIT_DEFAULT_BRANCH=${{ github.event.repository.default_branch }}" >> $GITHUB_ENV
         echo "GH_PR=${{ github.event.number }}" >> $GITHUB_ENV
         echo "GIT_BASE_BRANCH=${{ github.base_ref }}" >> $GITHUB_ENV
