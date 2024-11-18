@@ -38,10 +38,10 @@ set +e
 		CLICOLOR_FORCE=1 pkgcruft diff --sort "${SCAN_DIR}/old.json" "${SCAN_DIR}/new.json" > "${diff}"
 		# output diff if changes exists
 		if [[ -s ${diff} ]]; then
-			echo -e "\n\nDifferences from last run"
+			echo Differences from last run
 			cat "${diff}"
 		else
-			echo -e "\n\nNo differences from last run"
+			echo No differences from last run
 		fi
 	fi
 
@@ -52,20 +52,24 @@ set +e
 			diff=$(mktemp)
 			# disable colors as ANSI escape codes aren't interpreted in github comments
 			NO_COLOR=1 pkgcruft diff --sort "${OLD_SCAN_DIR}/old.json" "${SCAN_DIR}/new.json" > "${diff}"
-			diff_output=$(mktemp)
-			# output diff if changes exists
-			if [[ -s ${diff} ]]; then
-				echo -e "\n\nDifferences from target branch: ${GIT_BASE_BRANCH}" >> "${diff_output}"
-				cat "${diff}" >> "${diff_output}"
-			else
-				echo -e "\n\nNo differences from target branch: ${GIT_BASE_BRANCH}" >> "${diff_output}"
-			fi
-			cat "${diff_output}"
 
-			# use diff format for PR comments
+			# determine diff header
+			header=$(mktemp)
+			if [[ -s ${diff} ]]; then
+				echo "Differences from target branch: ${GIT_BASE_BRANCH}" >> "${header}"
+			else
+				echo "No differences from target branch: ${GIT_BASE_BRANCH}" >> "${header}"
+			fi
+
+			# output info
+			cat "${header}"
+			cat "${diff}"
+
+			# add PR comment using diff format
 			pr=$(mktemp)
 			echo '```diff' >> "${pr}"
-			cat "${diff_output}" >> "${pr}"
+			cat "${header}" >> "${pr}"
+			cat "${diff}" >> "${pr}"
 			echo '```' >> "${pr}"
 			gh pr comment ${GH_PR} -F "${pr}"
 		fi
@@ -77,10 +81,10 @@ set +e
 			CLICOLOR_FORCE=1 pkgcruft diff --sort "${OLD_SCAN_DIR}/old.json" "${SCAN_DIR}/new.json" > "${diff}"
 			# output diff if changes exists
 			if [[ -s ${diff} ]]; then
-				echo -e "\n\nDifferences from default branch: ${GIT_DEFAULT_BRANCH}"
+				echo Differences from default branch: ${GIT_DEFAULT_BRANCH}
 				cat "${diff}"
 			else
-				echo -e "\n\nNo differences from default branch: ${GIT_DEFAULT_BRANCH}"
+				echo No differences from default branch: ${GIT_DEFAULT_BRANCH}
 			fi
 		fi
 	fi
