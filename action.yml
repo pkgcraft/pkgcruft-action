@@ -17,18 +17,8 @@ inputs:
 runs:
   using: composite
   steps:
-    # TODO: re-enable cargo-binstall on next releases with embedded Cargo.toml binstall metadata
-    #- uses: cargo-bins/cargo-binstall@main
-    #
-    #- name: Install pkgcraft-tools
-    #  shell: bash
-    #  run: cargo binstall --target x86_64-unknown-linux-gnu pkgcraft-tools
+    - uses: cargo-bins/cargo-binstall@main
 
-    #- name: Install pkgcruft
-    #  shell: bash
-    #  run: cargo binstall --target x86_64-unknown-linux-gnu pkgcruft
-
-    # TODO: remove this once the above binstall method works
     - name: Install pkgcraft tools
       id: install
       shell: bash
@@ -37,8 +27,8 @@ runs:
           cargo install pkgcraft-tools --git https://github.com/pkgcraft/pkgcraft.git
           cargo install pkgcruft --git https://github.com/pkgcraft/pkgcraft.git
         else
-          curl -sL https://github.com/pkgcraft/pkgcraft/releases/download/pkgcraft-tools-0.0.16/pkgcraft-tools-0.0.16-x86_64-unknown-linux-gnu.tar.xz | tar -Jxf - -C ~/.cargo/bin
-          curl -sL https://github.com/pkgcraft/pkgcraft/releases/download/pkgcruft-0.0.3/pkgcruft-0.0.3-x86_64-unknown-linux-gnu.tar.xz | tar -Jxf - -C ~/.cargo/bin
+          cargo binstall --target x86_64-unknown-linux-gnu pkgcraft-tools
+          cargo binstall --target x86_64-unknown-linux-gnu pkgcruft
         fi
 
         pk --version
