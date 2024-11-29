@@ -21,11 +21,9 @@ set +e
 	EOF
 	sudo mv "${dir}" /etc/portage
 
-	echo Generating metadata
 	# TODO: incorporate custom metadata dir into `pkgcruft scan` option
 	mkdir -p ~/.cache/pkgcruft/md5-cache "${REPO}"/metadata/md5-cache
 	sudo mount -o bind ~/.cache/pkgcruft/md5-cache "${REPO}/metadata/md5-cache"
-	pk repo metadata regen "${REPO}"
 
 	echo Running pkgcruft
 	SCAN_DIR="${HOME}/.cache/pkgcruft/scans/${GIT_BRANCH}"
