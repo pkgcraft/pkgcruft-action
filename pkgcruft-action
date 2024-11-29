@@ -5,6 +5,23 @@ set +e
 
 # run scanning in a subshell with `set -e` enabled
 (
+	# determine old commit for diff targeting
+	if [[ -n ${GIT_BASE_BRANCH} ]]; then
+		# pull request
+		OLD_COMMIT=$(git rev-parse origin/${GIT_BASE_BRANCH})
+		OLD_COMMIT_NAME=origin/${GIT_BASE_BRANCH}
+	elif [[ ${GIT_BRANCH} != ${GIT_DEFAULT_BRANCH} ]]; then
+		# non-default branch
+		OLD_COMMIT=$(git rev-parse origin/${GIT_DEFAULT_BRANCH})
+		OLD_COMMIT_NAME=origin/${GIT_DEFAULT_BRANCH}
+	else
+		OLD_COMMIT=$(git rev-parse HEAD~1)
+		OLD_COMMIT_NAME=$(git rev-parse --short HEAD~1)
+	fi
+
+	# disable diff support if the target commits don't exist due a shallow git checkout
+	DIFF_SUPPORT=$?
+
 	set -e
 
 	# TODO: replace with native pkgcraft repo syncing functionality
@@ -41,18 +58,9 @@ set +e
 	echo Current pkgcruft results: ${NEW_COMMIT_NAME}
 	pkgcruft replay --color --sort "${FILE}"
 
-	# determine old commit for diff targeting
-	if [[ -n ${GIT_BASE_BRANCH} ]]; then
-		# pull request
-		OLD_COMMIT=$(git rev-parse origin/${GIT_BASE_BRANCH})
-		OLD_COMMIT_NAME=origin/${GIT_BASE_BRANCH}
-	elif [[ ${GIT_BRANCH} != ${GIT_DEFAULT_BRANCH} ]]; then
-		# non-default branch
-		OLD_COMMIT=$(git rev-parse origin/${GIT_DEFAULT_BRANCH})
-		OLD_COMMIT_NAME=origin/${GIT_DEFAULT_BRANCH}
-	else
-		OLD_COMMIT=$(git rev-parse HEAD~1)
-		OLD_COMMIT_NAME=$(git rev-parse --short HEAD~1)
+	if [[ ${DIFF_SUPPORT} != 0 ]]; then
+		echo Skipping pkgcruft diff: running in shallow git checkout
+		exit 0
 	fi
 
 	# Generate results for old commit if they don't exist
