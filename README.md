@@ -1,6 +1,6 @@
 # pkgcruft-action
 
-GitHub action that runs pkgcruft over an ebuild repo.
+GitHub action that runs [pkgcruft] over an ebuild repo.
 
 ## Inputs
 
@@ -28,3 +28,5 @@ jobs:
     - name: Run pkgcruft
       uses: pkgcraft/pkgcruft-action@main
 ```
+
+[pkgcruft]: <https://github.com/pkgcraft/pkgcraft/tree/main/crates/pkgcruft>
