@@ -10,15 +10,15 @@ set +e
 	# determine old commit for diff targeting
 	if [[ -n ${GIT_BASE_BRANCH} ]]; then
 		# pull request
-		OLD_COMMIT=$(git rev-parse origin/${GIT_BASE_BRANCH})
+		OLD_COMMIT=$(git rev-parse --verify --quiet origin/${GIT_BASE_BRANCH})
 		OLD_COMMIT_NAME=origin/${GIT_BASE_BRANCH}
 	elif [[ ${GIT_BRANCH} != ${GIT_DEFAULT_BRANCH} ]]; then
 		# non-default branch
-		OLD_COMMIT=$(git rev-parse origin/${GIT_DEFAULT_BRANCH})
+		OLD_COMMIT=$(git rev-parse --verify --quiet origin/${GIT_DEFAULT_BRANCH})
 		OLD_COMMIT_NAME=origin/${GIT_DEFAULT_BRANCH}
 	else
-		OLD_COMMIT=$(git rev-parse HEAD~1)
-		OLD_COMMIT_NAME=$(git rev-parse --short HEAD~1)
+		OLD_COMMIT=$(git rev-parse --verify --quiet HEAD~1)
+		OLD_COMMIT_NAME=$(git rev-parse --short --verify --quiet HEAD~1)
 	fi
 
 	# disable diff support if the target commits don't exist due a shallow git checkout
