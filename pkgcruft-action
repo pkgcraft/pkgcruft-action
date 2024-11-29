@@ -7,6 +7,27 @@ set +e
 (
 	set -e
 
+	# set up cache files
+	FILE=$(mktemp)
+	CACHE="${HOME}/.cache/pkgcruft/scans"
+	mkdir -p "${CACHE}"
+
+	# determine target commit
+	cd "${REPO}"
+	NEW_COMMIT=$(git rev-parse HEAD)
+	NEW_COMMIT_SHORT=$(git rev-parse --short HEAD)
+
+	# determine old commit for diff targeting
+	if [[ -n ${GIT_BASE_BRANCH} ]]; then
+		# pull request
+		OLD_COMMIT=$(git rev-parse ${GIT_BASE_BRANCH})
+	elif [[ ${GIT_BRANCH} != ${GIT_DEFAULT_BRANCH} ]]; then
+		# non-default branch
+		OLD_COMMIT=$(git rev-parse ${GIT_DEFAULT_BRANCH})
+	else
+		OLD_COMMIT=$(git rev-parse HEAD~1)
+	fi
+
 	# TODO: replace with native pkgcraft repo syncing functionality
 	# see https://github.com/pkgcraft/pkgcruft-action/issues/2
 	GENTOO_REPO="${HOME}/.cache/pkgcraft/repos/gentoo"
@@ -22,74 +43,72 @@ set +e
 	sudo mv "${dir}" /etc/portage
 
 	# TODO: incorporate custom metadata dir into `pkgcruft scan` option
-	mkdir -p ~/.cache/pkgcruft/md5-cache "${REPO}"/metadata/md5-cache
-	sudo mount -o bind ~/.cache/pkgcruft/md5-cache "${REPO}/metadata/md5-cache"
+	mkdir -p ~/.cache/pkgcruft/md5-cache metadata/md5-cache
+	sudo mount -o bind ~/.cache/pkgcruft/md5-cache metadata/md5-cache
 
-	echo Running pkgcruft
-	SCAN_DIR="${HOME}/.cache/pkgcruft/scans/${GIT_BRANCH}"
-	mkdir -p "${SCAN_DIR}"
-	pkgcruft scan "${REPO}" -R json > "${SCAN_DIR}/new.json"
-	pkgcruft replay --color --sort "${SCAN_DIR}/new.json"
+	echo Running pkgcruft: ${NEW_COMMIT}
+	pkgcruft scan -R json > "${FILE}"
 
-	if [[ -f ${SCAN_DIR}/old.json ]]; then
-		diff=$(mktemp)
-		pkgcruft diff --color --sort "${SCAN_DIR}/old.json" "${SCAN_DIR}/new.json" > "${diff}"
-		# output diff if changes exists
-		if [[ -s ${diff} ]]; then
-			echo Differences from last run
-			cat "${diff}"
-		else
-			echo No differences from last run
-		fi
+	# Generate results for old commit if they don't exist
+	if [[ ! -f ${CACHE}/${OLD_COMMIT} ]]; then
+		echo Running pkgcruft for diff targeting: ${OLD_COMMIT}
+		git checkout ${OLD_COMMIT}
+		pkgcruft scan -R json > "${CACHE}/${OLD_COMMIT}"
+	fi
+
+	echo Current pkgcruft results: ${NEW_COMMIT}
+	pkgcruft replay --color --sort "${FILE}"
+
+	# output diff if changes exists
+	diff=$(mktemp)
+	pkgcruft diff --color --sort "${CACHE}/${OLD_COMMIT}" "${FILE}" > "${diff}"
+	if [[ -s ${diff} ]]; then
+		echo Differences from: ${OLD_COMMIT}
+		cat "${diff}"
+	else
+		echo No differences from: ${OLD_COMMIT}
 	fi
 
 	if [[ -n ${GIT_BASE_BRANCH} ]]; then
-		# pull request diff
-		OLD_SCAN_DIR="${HOME}/.cache/pkgcruft/scans/${GIT_BASE_BRANCH}"
-		if [[ -f ${OLD_SCAN_DIR}/old.json ]]; then
-			diff=$(mktemp)
-			# disable colors as ANSI escape codes aren't interpreted in github comments
-			pkgcruft diff --color false --sort "${OLD_SCAN_DIR}/old.json" "${SCAN_DIR}/new.json" > "${diff}"
+		# pull request
+		diff=$(mktemp)
+		# disable colors as ANSI escape codes aren't interpreted in github comments
+		pkgcruft diff --color false --sort "${CACHE}/${OLD_COMMIT}" "${FILE}" > "${diff}"
 
-			# determine diff header
-			header=$(mktemp)
-			if [[ -s ${diff} ]]; then
-				echo "Differences from: ${GIT_BASE_BRANCH}..${GIT_COMMIT}" >> "${header}"
-			else
-				echo "No differences from: ${GIT_BASE_BRANCH}..${GIT_COMMIT}" >> "${header}"
-			fi
-
-			# output info
-			cat "${header}"
-			cat "${diff}"
-
-			# add PR comment using diff format
-			pr=$(mktemp)
-			echo '```diff' >> "${pr}"
-			cat "${header}" >> "${pr}"
-			cat "${diff}" >> "${pr}"
-			echo '```' >> "${pr}"
-			gh pr comment ${GH_PR} -F "${pr}"
+		# determine header
+		header=$(mktemp)
+		if [[ -s ${diff} ]]; then
+			echo "Differences from: ${GIT_BASE_BRANCH}..${NEW_COMMIT_SHORT}" >> "${header}"
+		else
+			echo "No differences from: ${GIT_BASE_BRANCH}..${NEW_COMMIT_SHORT}" >> "${header}"
 		fi
+
+		# output info
+		cat "${header}"
+		cat "${diff}"
+
+		# add PR comment using diff format
+		pr=$(mktemp)
+		echo '```diff' >> "${pr}"
+		cat "${header}" >> "${pr}"
+		cat "${diff}" >> "${pr}"
+		echo '```' >> "${pr}"
+		gh pr comment ${GH_PR} -F "${pr}"
 	elif [[ ${GIT_BRANCH} != ${GIT_DEFAULT_BRANCH} ]]; then
-		# default branch to non-default branch diff
-		OLD_SCAN_DIR="${HOME}/.cache/pkgcruft/scans/${GIT_DEFAULT_BRANCH}"
-		if [[ -f ${OLD_SCAN_DIR}/old.json ]]; then
-			diff=$(mktemp)
-			pkgcruft diff --color --sort "${OLD_SCAN_DIR}/old.json" "${SCAN_DIR}/new.json" > "${diff}"
-			# output diff if changes exists
-			if [[ -s ${diff} ]]; then
-				echo Differences from default branch: ${GIT_DEFAULT_BRANCH}
-				cat "${diff}"
-			else
-				echo No differences from default branch: ${GIT_DEFAULT_BRANCH}
-			fi
+		diff=$(mktemp)
+		pkgcruft diff --color --sort "${CACHE}/${OLD_COMMIT}" "${FILE}" > "${diff}"
+		# output diff if changes exists
+		if [[ -s ${diff} ]]; then
+			echo Differences from default branch: ${GIT_DEFAULT_BRANCH}
+			cat "${diff}"
+		else
+			echo No differences from default branch: ${GIT_DEFAULT_BRANCH}
 		fi
 	fi
 
-	# update cache results for non-pr runs
+	# save results to cache for non-pr runs
 	if [[ -z ${GIT_BASE_BRANCH} ]]; then
-		mv "${SCAN_DIR}/new.json" "${SCAN_DIR}/old.json"
+		mv "${FILE}" "${CACHE}/${NEW_COMMIT}"
 	fi
 )
 
