@@ -59,53 +59,51 @@ set +e
 	echo Current pkgcruft results: ${NEW_COMMIT_NAME}
 	pkgcruft replay --color --sort "${FILE}"
 
-	if [[ ${DIFF_SUPPORT} != 0 ]]; then
-		echo Skipping pkgcruft diff: running in shallow git checkout
-		exit 0
-	fi
-
-	# Generate results for old commit if they don't exist
-	if [[ ! -f ${CACHE}/${OLD_COMMIT} ]]; then
+	# generate results for old commit when necessary if possible
+	if [[ ${DIFF_SUPPORT} == 0 && ! -f ${CACHE}/${OLD_COMMIT} ]]; then
 		git checkout --quiet ${OLD_COMMIT}
 		echo Running pkgcruft for diff targeting: ${OLD_COMMIT_NAME}
 		pkgcruft scan -R json > "${CACHE}/${OLD_COMMIT}"
 	fi
 
-	# output diff if changes exists
-	diff=$(mktemp)
-	pkgcruft diff --color --sort "${CACHE}/${OLD_COMMIT}" "${FILE}" > "${diff}"
-	if [[ -s ${diff} ]]; then
-		echo Differences from: ${OLD_COMMIT_NAME}..${NEW_COMMIT_NAME}
-		cat "${diff}"
-	else
-		echo No differences from: ${OLD_COMMIT_NAME}..${NEW_COMMIT_NAME}
-	fi
-
-	# add diff comment to PR
-	if [[ ${PR_COMMENTS} == "true" && -n ${GIT_BASE_BRANCH} ]]; then
+	# enable diff support if cache entry exists
+	if [[ -f ${CACHE}/${OLD_COMMIT} ]]; then
+		# output diff if changes exists
 		diff=$(mktemp)
-		# disable colors as ANSI escape codes aren't interpreted in github comments
-		pkgcruft diff --color false --sort "${CACHE}/${OLD_COMMIT}" "${FILE}" > "${diff}"
-
-		# determine header
-		header=$(mktemp)
+		pkgcruft diff --color --sort "${CACHE}/${OLD_COMMIT}" "${FILE}" > "${diff}"
 		if [[ -s ${diff} ]]; then
-			echo "Differences from: ${OLD_COMMIT_NAME}..${NEW_COMMIT_NAME}" >> "${header}"
+			echo Differences from: ${OLD_COMMIT_NAME}..${NEW_COMMIT_NAME}
+			cat "${diff}"
 		else
-			echo "No differences from: ${OLD_COMMIT_NAME}..${NEW_COMMIT_NAME}" >> "${header}"
+			echo No differences from: ${OLD_COMMIT_NAME}..${NEW_COMMIT_NAME}
 		fi
 
-		# output info
-		cat "${header}"
-		cat "${diff}"
+		# add diff comment to PR
+		if [[ ${PR_COMMENTS} == "true" && -n ${GIT_BASE_BRANCH} ]]; then
+			diff=$(mktemp)
+			# disable colors as ANSI escape codes aren't interpreted in github comments
+			pkgcruft diff --color false --sort "${CACHE}/${OLD_COMMIT}" "${FILE}" > "${diff}"
 
-		# add PR comment using diff format
-		pr=$(mktemp)
-		echo '```diff' >> "${pr}"
-		cat "${header}" >> "${pr}"
-		cat "${diff}" >> "${pr}"
-		echo '```' >> "${pr}"
-		gh pr comment ${GH_PR} -F "${pr}"
+			# determine header
+			header=$(mktemp)
+			if [[ -s ${diff} ]]; then
+				echo "Differences from: ${OLD_COMMIT_NAME}..${NEW_COMMIT_NAME}" >> "${header}"
+			else
+				echo "No differences from: ${OLD_COMMIT_NAME}..${NEW_COMMIT_NAME}" >> "${header}"
+			fi
+
+			# output info
+			cat "${header}"
+			cat "${diff}"
+
+			# add PR comment using diff format
+			pr=$(mktemp)
+			echo '```diff' >> "${pr}"
+			cat "${header}" >> "${pr}"
+			cat "${diff}" >> "${pr}"
+			echo '```' >> "${pr}"
+			gh pr comment ${GH_PR} -F "${pr}"
+		fi
 	fi
 
 	# save results to cache for non-pr runs
