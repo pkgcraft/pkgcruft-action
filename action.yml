@@ -9,6 +9,10 @@ inputs:
     description: Path to ebuild repo
     required: false
     default: './'
+  pr-comments:
+    description: Enable pull request comment support
+    required: false
+    default: 'true'
   git:
     description: Use pkgcraft from git
     required: false
@@ -46,6 +50,7 @@ runs:
       shell: bash
       run: |
         echo "REPO=${{ inputs.repo }}" >> $GITHUB_ENV
+        echo "PR_COMMENTS=${{ inputs.pr-comments }}" >> $GITHUB_ENV
         echo "GIT_DEFAULT_BRANCH=${{ github.event.repository.default_branch }}" >> $GITHUB_ENV
         echo "GH_PR=${{ github.event.number }}" >> $GITHUB_ENV
         echo "GIT_BASE_BRANCH=${{ github.base_ref }}" >> $GITHUB_ENV

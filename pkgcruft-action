@@ -72,8 +72,8 @@ set +e
 		echo No differences from: ${OLD_COMMIT_NAME}..${NEW_COMMIT_NAME}
 	fi
 
-	if [[ -n ${GIT_BASE_BRANCH} ]]; then
-		# add diff comment to PR
+	# add diff comment to PR
+	if [[ ${PR_COMMENTS} == "true" && -n ${GIT_BASE_BRANCH} ]]; then
 		diff=$(mktemp)
 		# disable colors as ANSI escape codes aren't interpreted in github comments
 		pkgcruft diff --color false --sort "${CACHE}/${OLD_COMMIT}" "${FILE}" > "${diff}"
@@ -97,8 +97,10 @@ set +e
 		cat "${diff}" >> "${pr}"
 		echo '```' >> "${pr}"
 		gh pr comment ${GH_PR} -F "${pr}"
-	else
-		# save results to cache for non-pr runs
+	fi
+
+	# save results to cache for non-pr runs
+	if [[ -z ${GIT_BASE_BRANCH} ]]; then
 		mv "${FILE}" "${CACHE}/${NEW_COMMIT}"
 	fi
 )

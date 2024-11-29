@@ -8,10 +8,16 @@ GitHub action that runs [pkgcruft] over an ebuild repo.
 
 By default, the current working directory is used for a repo path.
 
+### `pr-comments` (optional) -- true or false
+
+By default, comments are added to pull requests showing the scan difference
+from the base commit.
+
 ## Example workflow
 
 Note that for diffing to work, the full history of the target repo needs to be
-fetched. Also, the action requires using x86-64 Linux runners.
+fetched (using the checkout action's `fetch-depth: 0` option in this case).
+Also, the action requires using x86-64 Linux runners.
 
 ```yaml
 name: pkgcruft
