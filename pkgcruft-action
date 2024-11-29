@@ -35,10 +35,10 @@ set +e
 	NEW_COMMIT=$(git rev-parse HEAD)
 	NEW_COMMIT_NAME=$(git rev-parse --short HEAD)
 
-	echo Running pkgcruft: ${NEW_COMMIT}
+	echo Running pkgcruft: ${NEW_COMMIT_NAME}
 	pkgcruft scan -R json > "${FILE}"
 
-	echo Current pkgcruft results: ${NEW_COMMIT}
+	echo Current pkgcruft results: ${NEW_COMMIT_NAME}
 	pkgcruft replay --color --sort "${FILE}"
 
 	# determine old commit for diff targeting
