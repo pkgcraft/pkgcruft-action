@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+cd "${REPO}"
+
 # disable github action bash shell default `set -e`
 set +e
 
@@ -48,7 +50,6 @@ set +e
 	mkdir -p "${CACHE}"
 
 	# determine target commit
-	cd "${REPO}"
 	NEW_COMMIT=$(git rev-parse HEAD)
 	NEW_COMMIT_NAME=$(git rev-parse --short HEAD)
 
