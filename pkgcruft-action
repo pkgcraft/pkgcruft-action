@@ -7,27 +7,6 @@ set +e
 (
 	set -e
 
-	# set up cache files
-	FILE=$(mktemp)
-	CACHE="${HOME}/.cache/pkgcruft/scans"
-	mkdir -p "${CACHE}"
-
-	# determine target commit
-	cd "${REPO}"
-	NEW_COMMIT=$(git rev-parse HEAD)
-	NEW_COMMIT_SHORT=$(git rev-parse --short HEAD)
-
-	# determine old commit for diff targeting
-	if [[ -n ${GIT_BASE_BRANCH} ]]; then
-		# pull request
-		OLD_COMMIT=$(git rev-parse ${GIT_BASE_BRANCH})
-	elif [[ ${GIT_BRANCH} != ${GIT_DEFAULT_BRANCH} ]]; then
-		# non-default branch
-		OLD_COMMIT=$(git rev-parse ${GIT_DEFAULT_BRANCH})
-	else
-		OLD_COMMIT=$(git rev-parse HEAD~1)
-	fi
-
 	# TODO: replace with native pkgcraft repo syncing functionality
 	# see https://github.com/pkgcraft/pkgcruft-action/issues/2
 	GENTOO_REPO="${HOME}/.cache/pkgcraft/repos/gentoo"
@@ -46,8 +25,32 @@ set +e
 	mkdir -p ~/.cache/pkgcruft/md5-cache metadata/md5-cache
 	sudo mount -o bind ~/.cache/pkgcruft/md5-cache metadata/md5-cache
 
+	# set up cache files
+	FILE=$(mktemp)
+	CACHE="${HOME}/.cache/pkgcruft/scans"
+	mkdir -p "${CACHE}"
+
+	# determine target commit
+	cd "${REPO}"
+	NEW_COMMIT=$(git rev-parse HEAD)
+	NEW_COMMIT_SHORT=$(git rev-parse --short HEAD)
+
 	echo Running pkgcruft: ${NEW_COMMIT}
 	pkgcruft scan -R json > "${FILE}"
+
+	echo Current pkgcruft results: ${NEW_COMMIT}
+	pkgcruft replay --color --sort "${FILE}"
+
+	# determine old commit for diff targeting
+	if [[ -n ${GIT_BASE_BRANCH} ]]; then
+		# pull request
+		OLD_COMMIT=$(git rev-parse ${GIT_BASE_BRANCH})
+	elif [[ ${GIT_BRANCH} != ${GIT_DEFAULT_BRANCH} ]]; then
+		# non-default branch
+		OLD_COMMIT=$(git rev-parse ${GIT_DEFAULT_BRANCH})
+	else
+		OLD_COMMIT=$(git rev-parse HEAD~1)
+	fi
 
 	# Generate results for old commit if they don't exist
 	if [[ ! -f ${CACHE}/${OLD_COMMIT} ]]; then
@@ -55,9 +58,6 @@ set +e
 		git checkout ${OLD_COMMIT}
 		pkgcruft scan -R json > "${CACHE}/${OLD_COMMIT}"
 	fi
-
-	echo Current pkgcruft results: ${NEW_COMMIT}
-	pkgcruft replay --color --sort "${FILE}"
 
 	# output diff if changes exists
 	diff=$(mktemp)
