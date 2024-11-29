@@ -33,7 +33,7 @@ set +e
 	# determine target commit
 	cd "${REPO}"
 	NEW_COMMIT=$(git rev-parse HEAD)
-	NEW_COMMIT_SHORT=$(git rev-parse --short HEAD)
+	NEW_COMMIT_NAME=$(git rev-parse --short HEAD)
 
 	echo Running pkgcruft: ${NEW_COMMIT}
 	pkgcruft scan -R json > "${FILE}"
@@ -44,18 +44,21 @@ set +e
 	# determine old commit for diff targeting
 	if [[ -n ${GIT_BASE_BRANCH} ]]; then
 		# pull request
-		OLD_COMMIT=$(git rev-parse ${GIT_BASE_BRANCH})
+		OLD_COMMIT=$(git rev-parse origin/${GIT_BASE_BRANCH})
+		OLD_COMMIT_NAME=origin/${GIT_BASE_BRANCH}
 	elif [[ ${GIT_BRANCH} != ${GIT_DEFAULT_BRANCH} ]]; then
 		# non-default branch
-		OLD_COMMIT=$(git rev-parse ${GIT_DEFAULT_BRANCH})
+		OLD_COMMIT=$(git rev-parse origin/${GIT_DEFAULT_BRANCH})
+		OLD_COMMIT_NAME=origin/${GIT_DEFAULT_BRANCH}
 	else
 		OLD_COMMIT=$(git rev-parse HEAD~1)
+		OLD_COMMIT_NAME=$(git rev-parse --short HEAD~1)
 	fi
 
 	# Generate results for old commit if they don't exist
 	if [[ ! -f ${CACHE}/${OLD_COMMIT} ]]; then
-		echo Running pkgcruft for diff targeting: ${OLD_COMMIT}
-		git checkout ${OLD_COMMIT}
+		git checkout --quiet ${OLD_COMMIT}
+		echo Running pkgcruft for diff targeting: ${OLD_COMMIT_NAME}
 		pkgcruft scan -R json > "${CACHE}/${OLD_COMMIT}"
 	fi
 
@@ -63,14 +66,14 @@ set +e
 	diff=$(mktemp)
 	pkgcruft diff --color --sort "${CACHE}/${OLD_COMMIT}" "${FILE}" > "${diff}"
 	if [[ -s ${diff} ]]; then
-		echo Differences from: ${OLD_COMMIT}
+		echo Differences from: ${OLD_COMMIT_NAME}..${NEW_COMMIT_NAME}
 		cat "${diff}"
 	else
-		echo No differences from: ${OLD_COMMIT}
+		echo No differences from: ${OLD_COMMIT_NAME}..${NEW_COMMIT_NAME}
 	fi
 
 	if [[ -n ${GIT_BASE_BRANCH} ]]; then
-		# pull request
+		# add diff comment to PR
 		diff=$(mktemp)
 		# disable colors as ANSI escape codes aren't interpreted in github comments
 		pkgcruft diff --color false --sort "${CACHE}/${OLD_COMMIT}" "${FILE}" > "${diff}"
@@ -78,9 +81,9 @@ set +e
 		# determine header
 		header=$(mktemp)
 		if [[ -s ${diff} ]]; then
-			echo "Differences from: ${GIT_BASE_BRANCH}..${NEW_COMMIT_SHORT}" >> "${header}"
+			echo "Differences from: ${OLD_COMMIT_NAME}..${NEW_COMMIT_NAME}" >> "${header}"
 		else
-			echo "No differences from: ${GIT_BASE_BRANCH}..${NEW_COMMIT_SHORT}" >> "${header}"
+			echo "No differences from: ${OLD_COMMIT_NAME}..${NEW_COMMIT_NAME}" >> "${header}"
 		fi
 
 		# output info
@@ -94,20 +97,8 @@ set +e
 		cat "${diff}" >> "${pr}"
 		echo '```' >> "${pr}"
 		gh pr comment ${GH_PR} -F "${pr}"
-	elif [[ ${GIT_BRANCH} != ${GIT_DEFAULT_BRANCH} ]]; then
-		diff=$(mktemp)
-		pkgcruft diff --color --sort "${CACHE}/${OLD_COMMIT}" "${FILE}" > "${diff}"
-		# output diff if changes exists
-		if [[ -s ${diff} ]]; then
-			echo Differences from default branch: ${GIT_DEFAULT_BRANCH}
-			cat "${diff}"
-		else
-			echo No differences from default branch: ${GIT_DEFAULT_BRANCH}
-		fi
-	fi
-
-	# save results to cache for non-pr runs
-	if [[ -z ${GIT_BASE_BRANCH} ]]; then
+	else
+		# save results to cache for non-pr runs
 		mv "${FILE}" "${CACHE}/${NEW_COMMIT}"
 	fi
 )
