@@ -1,6 +1,7 @@
 # pkgcruft-action
 
-GitHub action that runs [pkgcruft] over an ebuild repo.
+GitHub action that runs [pkgcruft] over an ebuild repo and supports showing run
+differences between commits including optional PR comment support.
 
 ## Inputs
 
@@ -15,8 +16,11 @@ from the base commit.
 
 ## Example workflow
 
-Note that for diffing to work, the full history of the target repo needs to be
-fetched (using the checkout action's `fetch-depth: 0` option in this case).
+Note that for the action's diff support to work, the full history of the target
+repo needs to be fetched using the checkout action's `fetch-depth: 0` option.
+Shallow git repos will only show diff output if the target commit results exist
+in the cache.
+
 Also, the action requires using x86-64 Linux runners.
 
 ```yaml
