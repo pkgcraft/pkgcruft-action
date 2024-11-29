@@ -54,9 +54,9 @@ set +e
 			# determine diff header
 			header=$(mktemp)
 			if [[ -s ${diff} ]]; then
-				echo "Differences from target branch: ${GIT_BASE_BRANCH}" >> "${header}"
+				echo "Differences from: ${GIT_BASE_BRANCH}..${GIT_COMMIT}" >> "${header}"
 			else
-				echo "No differences from target branch: ${GIT_BASE_BRANCH}" >> "${header}"
+				echo "No differences from: ${GIT_BASE_BRANCH}..${GIT_COMMIT}" >> "${header}"
 			fi
 
 			# output info
@@ -66,7 +66,6 @@ set +e
 			# add PR comment using diff format
 			pr=$(mktemp)
 			echo '```diff' >> "${pr}"
-			echo "Commit: ${GIT_COMMIT}" >> "${pr}"
 			cat "${header}" >> "${pr}"
 			cat "${diff}" >> "${pr}"
 			echo '```' >> "${pr}"
