@@ -43,11 +43,15 @@ jobs:
     - name: Patch qa-primary repo
       working-directory: testdata/repos/valid/qa-primary
       run: |
-        for file in $(find -name '*.patch'); do
-          dir=${file%/*}
-          patch=${file##*/}
+        for path in $(find -name 'fix.*'); do
+          dir=${path%/*}
+          file=${path##*/}
           pushd "${dir}" > /dev/null
-          patch -p1 -F0 < "${patch}"
+          if [[ ${file} == fix.patch ]] ; then
+            patch -p1 -F0 -N < fix.patch
+          else
+            ./fix.sh
+          fi
           popd > /dev/null
         done
 
