@@ -1,30 +1,29 @@
 #!/usr/bin/env bash
 
+set -e
+
 cd "${REPO}"
 
-# disable github action bash shell default `set -e`
-set +e
+# determine if git repo is shallow
+SHALLOW_GIT_REPO=$(git rev-parse --is-shallow-repository)
 
-# run scanning in a subshell with `set -e` enabled
+# run scanning in a subshell
 (
-	# determine old commit for diff targeting
-	if [[ -n ${GIT_BASE_BRANCH} ]]; then
-		# pull request
-		OLD_COMMIT=$(git rev-parse --verify --quiet origin/${GIT_BASE_BRANCH})
-		OLD_COMMIT_NAME=origin/${GIT_BASE_BRANCH}
-	elif [[ ${GIT_BRANCH} != ${GIT_DEFAULT_BRANCH} ]]; then
-		# non-default branch
-		OLD_COMMIT=$(git rev-parse --verify --quiet origin/${GIT_DEFAULT_BRANCH})
-		OLD_COMMIT_NAME=origin/${GIT_DEFAULT_BRANCH}
-	else
-		OLD_COMMIT=$(git rev-parse --verify --quiet HEAD~1)
-		OLD_COMMIT_NAME=$(git rev-parse --short --verify --quiet HEAD~1)
+	if ! ${SHALLOW_GIT_REPO}; then
+		# determine old commit for diff targeting
+		if [[ -n ${GIT_BASE_BRANCH} ]]; then
+			# pull request
+			OLD_COMMIT=$(git rev-parse --verify --quiet origin/${GIT_BASE_BRANCH})
+			OLD_COMMIT_NAME=origin/${GIT_BASE_BRANCH}
+		elif [[ ${GIT_BRANCH} != ${GIT_DEFAULT_BRANCH} ]]; then
+			# non-default branch
+			OLD_COMMIT=$(git rev-parse --verify --quiet origin/${GIT_DEFAULT_BRANCH})
+			OLD_COMMIT_NAME=origin/${GIT_DEFAULT_BRANCH}
+		else
+			OLD_COMMIT=$(git rev-parse --verify --quiet HEAD~1)
+			OLD_COMMIT_NAME=$(git rev-parse --short --verify --quiet HEAD~1)
+		fi
 	fi
-
-	# disable diff support if the target commits don't exist due a shallow git checkout
-	DIFF_SUPPORT=$?
-
-	set -e
 
 	# TODO: replace with native pkgcraft repo syncing functionality
 	# see https://github.com/pkgcraft/pkgcruft-action/issues/2
@@ -57,7 +56,7 @@ set +e
 	pkgcruft replay --color true --sort "${FILE}"
 
 	# generate results for old commit when necessary if possible
-	if [[ ${DIFF_SUPPORT} == 0 && ! -f ${CACHE}/${OLD_COMMIT} ]]; then
+	if [[ ! ${SHALLOW_GIT_REPO} && ! -f ${CACHE}/${OLD_COMMIT} ]]; then
 		git checkout --quiet ${OLD_COMMIT}
 		echo Running pkgcruft for diff targeting: ${OLD_COMMIT_NAME}
 		pkgcruft scan -R json > "${CACHE}/${OLD_COMMIT}"
