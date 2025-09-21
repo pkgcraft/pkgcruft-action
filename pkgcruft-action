@@ -54,7 +54,7 @@ set +e
 	pkgcruft scan -R json > "${FILE}"
 
 	echo Current pkgcruft results: ${NEW_COMMIT_NAME}
-	pkgcruft replay --color --sort "${FILE}"
+	pkgcruft replay --color true --sort "${FILE}"
 
 	# generate results for old commit when necessary if possible
 	if [[ ${DIFF_SUPPORT} == 0 && ! -f ${CACHE}/${OLD_COMMIT} ]]; then
@@ -67,7 +67,7 @@ set +e
 	if [[ -f ${CACHE}/${OLD_COMMIT} ]]; then
 		# output diff if changes exists
 		diff=$(mktemp)
-		pkgcruft diff --color --sort "${CACHE}/${OLD_COMMIT}" "${FILE}" > "${diff}"
+		pkgcruft diff --color true --sort "${CACHE}/${OLD_COMMIT}" "${FILE}" > "${diff}"
 		if [[ -s ${diff} ]]; then
 			echo Differences from: ${OLD_COMMIT_NAME}..${NEW_COMMIT_NAME}
 			cat "${diff}"
