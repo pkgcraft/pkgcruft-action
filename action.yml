@@ -19,6 +19,7 @@ inputs:
     description: Use pkgcraft from git
     required: false
     type: boolean
+    default: 'false'
 
 runs:
   using: composite
@@ -29,7 +30,7 @@ runs:
       id: install
       shell: bash
       run: |
-        if [[ ${{ inputs.git }} == "true" ]]; then
+        if ${{ inputs.git }}; then
           cargo install pkgcraft-tools --git https://github.com/pkgcraft/pkgcraft.git
           cargo install pkgcruft --git https://github.com/pkgcraft/pkgcraft.git
         else
