@@ -8,15 +8,17 @@ inputs:
   repo:
     description: Path to ebuild repo
     required: false
+    type: string
     default: './'
   pr-comments:
     description: Enable pull request comment support
     required: false
+    type: boolean
     default: 'true'
   git:
     description: Use pkgcraft from git
     required: false
-    default: 'false'
+    type: boolean
 
 runs:
   using: composite
