@@ -5,6 +5,10 @@ differences between commits including optional PR comment support.
 
 ## Inputs
 
+### `exit` (optional) -- report sets that trigger failures
+
+By default, critical and error level reports trigger failures.
+
 ### `repo` (optional) -- custom target repo path
 
 By default, the current working directory is used for a repo path.

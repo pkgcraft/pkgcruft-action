@@ -28,14 +28,22 @@ jobs:
 
     - name: Run against repo with invalid ebuilds
       env:
-        _PKGCRUFT_ACTION_EXIT_STATUS: 2
+        _PKGCRUFT_ACTION_EXIT_STATUS: 1
       uses: ./
       with:
         repo: testdata/repos/valid/bad
 
-    - name: Run against qa-primary repo
+    - name: Ignore exit failure status
       env:
         _PKGCRUFT_ACTION_EXIT_STATUS: 0
+      uses: ./
+      with:
+        repo: testdata/repos/valid/bad
+        exit: ''
+
+    - name: Run against qa-primary repo
+      env:
+        _PKGCRUFT_ACTION_EXIT_STATUS: 1
       uses: ./
       with:
         repo: testdata/repos/valid/qa-primary

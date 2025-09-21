@@ -5,6 +5,9 @@ set -e
 # determine if git repo is shallow
 SHALLOW_GIT_REPO=$(git rev-parse --is-shallow-repository)
 
+# track exit status of the main scanning run
+PKGCRUFT_SCAN_EXIT=0
+
 # run scanning in a subshell
 (
 	if ! ${SHALLOW_GIT_REPO}; then
@@ -47,8 +50,15 @@ SHALLOW_GIT_REPO=$(git rev-parse --is-shallow-repository)
 	NEW_COMMIT=$(git rev-parse HEAD)
 	NEW_COMMIT_NAME=$(git rev-parse --short HEAD)
 
+	# determine scanning options
+	OPTIONS=()
+	[[ -n ${PKGCRUFT_EXIT} ]] && OPTIONS+=( "--exit ${PKGCRUFT_EXIT}" )
+
 	echo Running pkgcruft: ${NEW_COMMIT_NAME}
-	pkgcruft scan -R json > "${FILE}"
+	set +e
+	pkgcruft scan -R json ${OPTIONS[@]} > "${FILE}"
+	PKGCRUFT_SCAN_EXIT=$?
+	set -e
 
 	echo Current pkgcruft results: ${NEW_COMMIT_NAME}
 	pkgcruft replay --color true --sort "${FILE}"
@@ -106,11 +116,14 @@ SHALLOW_GIT_REPO=$(git rev-parse --is-shallow-repository)
 	fi
 )
 
-status=$?
+STATUS=$?
+
+# if the run failed return subshell exit status, otherwise return the scan status
+[[ ${STATUS} -eq 0 ]] && STATUS=${PKGCRUFT_SCAN_EXIT}
 
 # verify expected exit status for tests
 if [[ -n ${_PKGCRUFT_ACTION_EXIT_STATUS} ]]; then
-	[[ ${_PKGCRUFT_ACTION_EXIT_STATUS} == ${status} ]] && exit 0
+	[[ ${_PKGCRUFT_ACTION_EXIT_STATUS} == ${STATUS} ]] && exit 0
 fi
 
-exit ${status}
+exit ${STATUS}
