@@ -28,17 +28,14 @@ set +e
 
 	# TODO: replace with native pkgcraft repo syncing functionality
 	# see https://github.com/pkgcraft/pkgcruft-action/issues/2
-	GENTOO_REPO="${HOME}/.cache/pkgcraft/repos/gentoo"
+	GENTOO_REPO=~/.cache/pkgcraft/repos/gentoo
 	mkdir -p "${GENTOO_REPO}"
 	curl -sL https://github.com/gentoo-mirror/gentoo/archive/stable.tar.gz | tar -zxf - --strip-components=1 -C "${GENTOO_REPO}"
-	dir=$(mktemp -d)
-	cat <<- EOF > "${dir}/repos.conf"
-	[DEFAULT]
-	main-repo = gentoo
-	[gentoo]
+	mkdir -p ~/.config/pkgcraft/repos
+	cat <<- EOF > ~/.config/pkgcraft/repos/gentoo
 	location = "${GENTOO_REPO}"
+	format = "ebuild"
 	EOF
-	sudo mv "${dir}" /etc/portage
 
 	# TODO: incorporate custom metadata dir into `pkgcruft scan` option
 	mkdir -p ~/.cache/pkgcruft/md5-cache metadata/md5-cache
@@ -46,7 +43,7 @@ set +e
 
 	# set up cache files
 	FILE=$(mktemp)
-	CACHE="${HOME}/.cache/pkgcruft/scans"
+	CACHE=~/.cache/pkgcruft/scans
 	mkdir -p "${CACHE}"
 
 	# determine target commit
