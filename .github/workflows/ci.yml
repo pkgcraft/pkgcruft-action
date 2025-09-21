@@ -48,9 +48,9 @@ jobs:
           file=${path##*/}
           pushd "${dir}" > /dev/null
           if [[ ${file} == fix.patch ]] ; then
-            patch -p1 -F0 -N < fix.patch
+            patch -p1 -F0 -N < fix.patch > /dev/null
           else
-            ./fix.sh
+            ./fix.sh > /dev/null
           fi
           popd > /dev/null
         done
