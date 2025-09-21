@@ -2,8 +2,6 @@
 
 set -e
 
-cd "${REPO}"
-
 # determine if git repo is shallow
 SHALLOW_GIT_REPO=$(git rev-parse --is-shallow-repository)
 

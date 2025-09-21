@@ -54,7 +54,6 @@ runs:
     - name: Set environment
       shell: bash
       run: |
-        echo "REPO=${{ inputs.repo }}" >> $GITHUB_ENV
         echo "PR_COMMENTS=${{ inputs.pr-comments }}" >> $GITHUB_ENV
         echo "GIT_DEFAULT_BRANCH=${{ github.event.repository.default_branch }}" >> $GITHUB_ENV
         echo "GH_PR=${{ github.event.number }}" >> $GITHUB_ENV
@@ -68,7 +67,9 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
-      run: pkgcruft-action
+      run: |
+        cd "${{ inputs.repo }}"
+        pkgcruft-action
 
     - name: Save cache
       if: ${{ github.base_ref == '' && steps.restore-cache.outputs.cache-hit != 'true' }}
