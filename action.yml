@@ -49,7 +49,7 @@ runs:
 
     - name: Restore cache
       id: restore-cache
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: ~/.cache/pkgcruft
         key: ${{ github.ref_name }}-${{ steps.install.outputs.pk }}-${{ steps.install.outputs.pkgcruft }}-repo-${{ hashFiles(format('{0}/**/*', inputs.repo)) }}
@@ -80,7 +80,7 @@ runs:
 
     - name: Save cache
       if: ${{ github.base_ref == '' && steps.restore-cache.outputs.cache-hit != 'true' }}
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v5
       with:
         path: ~/.cache/pkgcruft
         key: ${{ steps.restore-cache.outputs.cache-primary-key }}
