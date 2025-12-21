@@ -8,6 +8,9 @@ SHALLOW_GIT_REPO=$(git rev-parse --is-shallow-repository)
 # track exit status of the main scanning run
 PKGCRUFT_SCAN_EXIT=0
 
+# forcibly enable color support for pkgcruft
+export CLICOLOR_FORCE=1
+
 # run scanning in a subshell
 (
 	if ! ${SHALLOW_GIT_REPO}; then
@@ -61,7 +64,7 @@ PKGCRUFT_SCAN_EXIT=0
 	set -e
 
 	echo Current pkgcruft results: ${NEW_COMMIT_NAME}
-	pkgcruft replay --color true --sort "${FILE}"
+	pkgcruft replay --sort "${FILE}"
 
 	# generate results for old commit when necessary if possible
 	if [[ ! ${SHALLOW_GIT_REPO} && ! -f ${CACHE}/${OLD_COMMIT} ]]; then
@@ -74,7 +77,7 @@ PKGCRUFT_SCAN_EXIT=0
 	if [[ -f ${CACHE}/${OLD_COMMIT} ]]; then
 		# output diff if changes exists
 		diff=$(mktemp)
-		pkgcruft diff --color true --sort "${CACHE}/${OLD_COMMIT}" "${FILE}" > "${diff}"
+		pkgcruft diff --sort "${CACHE}/${OLD_COMMIT}" "${FILE}" > "${diff}"
 		if [[ -s ${diff} ]]; then
 			echo Differences from: ${OLD_COMMIT_NAME}..${NEW_COMMIT_NAME}
 			cat "${diff}"
@@ -86,7 +89,7 @@ PKGCRUFT_SCAN_EXIT=0
 		if [[ ${PR_COMMENTS} == "true" && -n ${GIT_BASE_BRANCH} ]]; then
 			diff=$(mktemp)
 			# disable colors as ANSI escape codes aren't interpreted in github comments
-			pkgcruft diff --color false --sort "${CACHE}/${OLD_COMMIT}" "${FILE}" > "${diff}"
+			pkgcruft diff --color never --sort "${CACHE}/${OLD_COMMIT}" "${FILE}" > "${diff}"
 
 			# determine header
 			header=$(mktemp)
