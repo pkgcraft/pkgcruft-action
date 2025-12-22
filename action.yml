@@ -20,44 +20,56 @@ inputs:
     required: false
     type: boolean
     default: 'true'
-  git:
-    description: Use pkgcraft from git
+  pkgcraft-tools:
+    description: pkgcraft-tools version
     required: false
-    type: boolean
-    default: 'false'
+    type: string
+    default: '0.0.31'
+  pkgcruft:
+    description: pkgcruft version
+    required: false
+    type: string
+    default: '0.0.18'
 
 runs:
   using: composite
   steps:
-    - uses: cargo-bins/cargo-binstall@main
-
-    - name: Install pkgcraft tools
-      id: install
-      shell: bash
-      run: |
-        if ${{ inputs.git }}; then
-          cargo install pkgcraft-tools --git https://github.com/pkgcraft/pkgcraft.git
-          cargo install pkgcruft --git https://github.com/pkgcraft/pkgcraft.git
-        else
-          cargo binstall --target x86_64-unknown-linux-gnu pkgcraft-tools pkgcruft
-        fi
-
-        pk --version
-        pkgcruft --version
-        echo "pk=$(pk --version)" >> $GITHUB_OUTPUT
-        echo "pkgcruft=$(pkgcruft --version)" >> $GITHUB_OUTPUT
-
     - name: Restore cache
       id: restore-cache
       uses: actions/cache/restore@v5
       with:
         path: ~/.cache/pkgcruft
-        key: ${{ github.ref_name }}-${{ steps.install.outputs.pk }}-${{ steps.install.outputs.pkgcruft }}-repo-${{ hashFiles(format('{0}/**/*', inputs.repo)) }}
+        key: ${{ github.ref_name }}:pk-${{ inputs.pkgcraft-tools }}:pkgcruft-${{ inputs.pkgcruft }}:repo-${{ hashFiles(format('{0}/**/*', inputs.repo)) }}
         restore-keys: |
-          ${{ github.ref_name }}-
-          ${{ github.event.repository.default_branch }}-
+          ${{ github.ref_name }}:pk-${{ inputs.pkgcraft-tools }}:pkgcruft-${{ inputs.pkgcruft }}:
+          ${{ github.ref_name }}:
+          ${{ github.event.repository.default_branch }}:
 
-    - name: Set environment
+    - name: Install cargo-binstall
+      uses: cargo-bins/cargo-binstall@main
+
+    - name: Install tools
+      shell: bash
+      run: |
+        if [[ ${{ inputs.pkgcraft-tools }} == "git" ]]; then
+          cargo install pkgcraft-tools --git https://github.com/pkgcraft/pkgcraft.git
+        else
+          cargo binstall --target x86_64-unknown-linux-gnu pkgcraft-tools@${{ inputs.pkgcraft-tools }}
+        fi
+
+        if [[ ${{ inputs.pkgcruft }} == "git" ]]; then
+          cargo install pkgcruft --git https://github.com/pkgcraft/pkgcraft.git
+        else
+          cargo binstall --target x86_64-unknown-linux-gnu pkgcruft@${{ inputs.pkgcruft }}
+        fi
+
+    - name: Show tool versions
+      shell: bash
+      run: |
+        pk --version
+        pkgcruft --version
+
+    - name: Initialize action environment
       shell: bash
       run: |
         echo "PKGCRUFT_EXIT=${{ inputs.exit }}" >> $GITHUB_ENV
@@ -79,7 +91,7 @@ runs:
         pkgcruft-action
 
     - name: Save cache
-      if: ${{ github.base_ref == '' && steps.restore-cache.outputs.cache-hit != 'true' }}
+      if: ${{ github.base_ref == '' && steps.restore-cache.outputs.cache-hit != 'true' && inputs.pkgcraft-tools != 'git' && inputs.pkgcruft != 'git' }}
       uses: actions/cache/save@v5
       with:
         path: ~/.cache/pkgcruft
