@@ -69,3 +69,17 @@ jobs:
       uses: ./
       with:
         repo: testdata/repos/valid/qa-primary
+
+    - name: Checkout pkgcraft overlay
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+        repository: pkgcraft/pkgcraft-overlay
+        path: pkgcraft-overlay
+
+    - name: Run against pkgcraft overlay
+      env:
+        _PKGCRUFT_ACTION_EXIT_STATUS: 0
+      uses: ./
+      with:
+        repo: pkgcraft-overlay
